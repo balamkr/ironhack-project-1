@@ -1,0 +1,23 @@
+---
+- hosts: all
+  become: yes
+  roles:
+    - common
+
+- hosts: bastion-host
+  become: yes
+  roles:
+    - docker
+    - bastion
+
+- hosts: postgres-host
+  become: yes 
+  roles:
+    - postgres
+
+- hosts: redis-host
+  become: yes
+  roles:
+    - docker
+    - redis
+    - worker

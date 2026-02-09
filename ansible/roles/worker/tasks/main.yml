@@ -1,0 +1,14 @@
+---
+- name: Run worker container
+  docker_container:
+    name: worker
+    image: "{{ dockerhub_user }}/worker"
+    state: started
+    restart_policy: always
+    recreate: yes
+    env:
+      REDIS_HOST: "{{ redis_host }}"
+      DB_HOST: "{{ postgres_host }}"
+      DB_USER: "{{ db_user }}"
+      DB_PASSWORD: "{{ db_password }}"
+

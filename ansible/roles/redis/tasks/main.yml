@@ -1,0 +1,10 @@
+---
+- name: Run redis container
+  docker_container:
+    name: redis
+    image: redis:latest
+    state: started
+    restart_policy: always
+    published_ports:
+      - "{{ redis_port }}:6379"
+

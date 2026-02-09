@@ -1,0 +1,38 @@
+---
+- name: Install nginx
+  apt:
+    name: nginx
+    state: present
+  become: yes
+
+- name: Deploy nginx config
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-available/default
+  notify: Restart nginx
+
+- name: Run vote container
+  docker_container:
+    name: vote
+    image: "{{ dockerhub_user }}/vote"
+    state: started
+    restart_policy: always
+    published_ports:
+      - "{{ vote_port }}:80"
+    env:
+      REDIS_HOST: "{{ redis_host }}"
+
+- name: Run result container
+  docker_container:
+    name: result
+    image: "{{ dockerhub_user }}/result"
+    state: started
+    restart_policy: always
+    published_ports:
+      - "{{ result_port }}:80"
+    env:
+      PG_HOST: "{{ postgres_host }}"
+      PG_USER: "{{ db_user }}"
+      PG_PASSWORD: "{{ db_password }}"
+      PG_PORT: "5432"
+

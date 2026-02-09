@@ -1,0 +1,7 @@
+---
+- name: Update apt cache
+  apt:
+    update_cache: yes
+  become: yes
+  when: inventory_hostname == "bastion-host"
+

@@ -1,0 +1,68 @@
+---
+- name: Install PostgreSQL
+  apt:
+    name: postgresql
+    state: present
+  become: yes
+
+- name: Ensure PostgreSQL is running
+  service:
+    name: postgresql
+    state: started
+    enabled: yes
+
+- name: Install psycopg2 dependencies
+  become: yes
+  apt:
+    name: python3-psycopg2
+    state: present
+
+# 1. TEMPORARILY ENABLE TRUST
+- name: Temporarily allow trust authentication for postgres user
+  become: yes
+  lineinfile:
+    path: /etc/postgresql/14/main/pg_hba.conf
+    regexp: '^local\s+all\s+postgres\s+.*$'
+    line: 'local   all   postgres   trust'
+
+# 2. RESTART IMMEDIATELY
+- name: Restart PostgreSQL (trust enabled)
+  become: yes
+  service:
+    name: postgresql
+    state: restarted
+
+# 3. SET PASSWORD
+- name: Set password for postgres user
+  become: yes
+  postgresql_user:
+    name: postgres
+    password: "{{ db_password }}"
+    login_user: postgres
+    login_unix_socket: /run/postgresql
+
+# 4. RESTORE MD5
+- name: Restore md5 authentication for postgres user
+  become: yes
+  lineinfile:
+    path: /etc/postgresql/14/main/pg_hba.conf
+    regexp: '^local\s+all\s+postgres\s+.*$'
+    line: 'local   all   postgres   md5'
+
+# 5. RESTART AGAIN
+- name: Restart PostgreSQL (md5 enabled)
+  become: yes
+  service:
+    name: postgresql
+    state: restarted
+
+# 6. CREATE APPLICATION USER
+- name: Create database user
+  become: yes
+  postgresql_user:
+    name: "{{ db_user }}"
+    password: "{{ db_password }}"
+    role_attr_flags: CREATEDB
+    login_user: postgres
+    login_password: "{{ db_password }}"
+    login_unix_socket: /run/postgresql
