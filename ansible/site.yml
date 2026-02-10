@@ -11,7 +11,7 @@
     - bastion
 
 - hosts: postgres-host
-  become: yes 
+  become: yes
   roles:
     - postgres
 
@@ -21,3 +21,15 @@
     - docker
     - redis
     - worker
+
+- hosts: vote-host
+  become: yes
+  roles:
+    - docker
+    - vote
+
+- hosts: result-host
+  become: yes
+  roles:
+    - docker
+    - result

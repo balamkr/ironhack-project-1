@@ -1,0 +1,13 @@
+---
+- name: Run vote container
+  docker_container:
+    name: vote
+    image: "{{ dockerhub_user }}/vote"
+    state: started
+    restart_policy: always
+    published_ports:
+      - "80:80"
+    env:
+      REDIS_HOST: "{{ redis_host }}"
+
+
