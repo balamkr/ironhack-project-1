@@ -1,0 +1,118 @@
+Distributed Voting Application — AWS + Docker + Ansible
+A production‑style distributed microservices system deployed on AWS using EC2, Docker, Redis, PostgreSQL, and an Application Load Balancer. Fully automated using Ansible.
+
+Architecture Overview
+Local (Docker Compose)
+Code
+vote → redis → worker → postgres → result
+AWS (Before ALB)
+Code
+Internet → Bastion (Nginx)
+                 │
+     ┌───────────┴───────────┐
+     ▼                       ▼
+ Vote EC2                Result EC2
+     │                       │
+     ▼                       ▼
+   Redis  ◄──────────────  Worker
+     │                       │
+     └───────────────▶ Postgres
+AWS (With ALB)
+Code
+User → ALB → /vote → Vote EC2 → Redis → Worker → Postgres
+             └────→ /result → Result EC2 → Postgres
+Components
+Vote Service
+Receives user votes
+
+Pushes messages to Redis
+
+Worker
+Consumes Redis queue
+
+Writes votes to Postgres
+
+Result Service
+Reads aggregated results from Postgres
+
+Redis
+Message queue
+
+Postgres
+Persistent storage
+
+Ansible Roles
+bastion — Nginx reverse proxy (pre‑ALB)
+
+vote — Docker install + vote container
+
+result — Docker install + result container
+
+redis — Redis container
+
+worker — Worker container
+
+postgres — Full DB automation (install, trust mode, password, psycopg2, user creation)
+
+ALB Configuration
+Listener: HTTP 80
+
+Rules:
+
+/vote → vote target group
+
+/result → result target group
+
+Health checks:
+
+Vote: /
+
+Result: /result/
+
+Security Groups
+ALB → EC2 (HTTP 80)
+
+Vote → Redis (6379)
+
+Worker → Redis (6379)
+
+Worker → Postgres (5432)
+
+Result → Postgres (5432)
+
+Bastion → All EC2 (SSH 22)
+
+End‑to‑End Flow
+User sends vote → ALB → vote EC2
+
+Vote EC2 pushes to Redis
+
+Worker pulls from Redis → writes to Postgres
+
+Result EC2 reads from Postgres
+
+ALB serves /result to user
+
+Troubleshooting Highlights
+Fixed ALB health checks
+
+Corrected SG rules for Redis and Postgres
+
+Repaired DB connectivity for result service
+
+Ensured worker processed queue
+
+Verified with nc, curl, logs, Redis CLI, SQL queries
+
+Outcome
+A fully functional, cloud‑native distributed system demonstrating DevOps best practices in:
+
+Networking
+
+Load balancing
+
+Automation
+
+Containerization
+
+Distributed system debugging
